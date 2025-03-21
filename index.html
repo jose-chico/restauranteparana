@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Restaurante</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #1a1a1a; 
+            color: white; 
+        }
+        .container { 
+            max-width: 500px; 
+            margin: 40px auto; 
+            background: #333; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0px 0px 15px rgba(0, 255, 0, 0.5); 
+        }
+        h2, h3 { 
+            text-align: center; 
+            color: #ffa500; 
+        }
+        input, button { 
+            display: block; 
+            margin: 10px 0; 
+            width: 100%; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 5px; 
+        }
+        input { 
+            background: #222; 
+            color: white; 
+            border: 1px solid #ffa500; 
+        }
+        button { 
+            background-color: #ffa500; 
+            color: black; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background-color: #ff8c00; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            background: #222; 
+            color: white; 
+            border-radius: 5px; 
+            overflow: hidden;
+        }
+        th, td { 
+            border: 1px solid #ffa500; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background: #ff8c00; 
+            color: black; 
+        }
+        td button { 
+            background: #00cc00; 
+            color: white; 
+            font-weight: bold; 
+        }
+        td button:hover { 
+            background: #009900; 
+        }
+        .delete-btn { 
+            background: red; 
+        }
+        .delete-btn:hover { 
+            background: darkred; 
+        }
+        @media (max-width: 600px) {
+            .container { width: 90%; }
+            table { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RESTAURANTE PARANÁ</h1>
+        <h2>Registro de Pedidos</h2>
+        <input type="text" id="nome" placeholder="Nome do Cliente">
+        <input type="text" id="produto" placeholder="Produto">
+        <input type="number" id="valor" placeholder="Valor (R$)">
+        <button onclick="salvarPedido()">Salvar Pedido</button>
+        <h3>Pedidos Registrados</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Produto</th>
+                    <th>Valor</th>
+                    <th>Data/Hora</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="listaPedidos"></tbody>
+        </table>
+    </div>
+    
+    <script>
+        function salvarPedido() {
+            const nome = document.getElementById('nome').value;
+            const produto = document.getElementById('produto').value;
+            const valor = document.getElementById('valor').value;
+            const dataHora = new Date().toLocaleString();
+            
+            if (!nome || !produto || !valor) {
+                alert("Preencha todos os campos!");
+                return;
+            }
+            
+            const pedido = { nome, produto, valor, dataHora };
+            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos.push(pedido);
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+            
+            document.getElementById('nome').value = '';
+            document.getElementById('produto').value = '';
+            document.getElementById('valor').value = '';
+            
+            exibirPedidos();
+        }
+        
+        function exibirPedidos() {
+            const listaPedidos = document.getElementById('listaPedidos');
+            listaPedidos.innerHTML = '';
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            
+            pedidos.forEach((p, index) => {
+                const row = `<tr>
+                    <td>${p.nome}</td>
+                    <td>${p.produto}</td>
+                    <td>R$ ${p.valor}</td>
+                    <td>${p.dataHora}</td>
+                    <td>
+                        <button onclick="editarPedido(${index})">Editar</button>
+                        <button class="delete-btn" onclick="deletarPedido(${index})">Deletar</button>
+                    </td>
+                </tr>`;
+                listaPedidos.innerHTML += row;
+            });
+        }
+        
+        function deletarPedido(index) {
+            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos.splice(index, 1);
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+            exibirPedidos();
+        }
+        
+        function editarPedido(index) {
+            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            const pedido = pedidos[index];
+            document.getElementById('nome').value = pedido.nome;
+            document.getElementById('produto').value = pedido.produto;
+            document.getElementById('valor').value = pedido.valor;
+            
+            deletarPedido(index);
+        }
+        
+        document.addEventListener('DOMContentLoaded', exibirPedidos);
+    </script>
+</body>
+</html>
