@@ -78,6 +78,19 @@
         .delete-btn:hover { 
             background: darkred; 
         }
+        .share-btn { 
+            background: #1e90ff;
+        }
+        .share-btn:hover { 
+            background: #0066cc;
+        }
+        .whatsapp-btn { 
+            background: #25D366;
+            color: white;
+        }
+        .whatsapp-btn:hover { 
+            background: #128C7E;
+        }
         @media (max-width: 600px) {
             .container { width: 90%; }
             table { font-size: 14px; }
@@ -86,7 +99,6 @@
 </head>
 <body>
     <div class="container">
-        <h1>RESTAURANTE PARANÁ</h1>
         <h2>Registro de Pedidos</h2>
         <input type="text" id="nome" placeholder="Nome do Cliente">
         <input type="text" id="produto" placeholder="Produto">
@@ -145,6 +157,7 @@
                     <td>
                         <button onclick="editarPedido(${index})">Editar</button>
                         <button class="delete-btn" onclick="deletarPedido(${index})">Deletar</button>
+                        <button class="whatsapp-btn" onclick="compartilharPedidoWhatsApp(${index})">Compartilhar no WhatsApp</button>
                     </td>
                 </tr>`;
                 listaPedidos.innerHTML += row;
@@ -166,6 +179,15 @@
             document.getElementById('valor').value = pedido.valor;
             
             deletarPedido(index);
+        }
+        
+        function compartilharPedidoWhatsApp(index) {
+            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            const pedido = pedidos[index];
+            const mensagem = `Pedido:\nNome: ${pedido.nome}\nProduto: ${pedido.produto}\nValor: R$ ${pedido.valor}\nData/Hora: ${pedido.dataHora}`;
+            
+            const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+            window.open(urlWhatsApp, '_blank');
         }
         
         document.addEventListener('DOMContentLoaded', exibirPedidos);
