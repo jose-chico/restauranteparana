@@ -84,13 +84,6 @@
         .share-btn:hover { 
             background: #0066cc;
         }
-        .whatsapp-btn { 
-            background: #25D366;
-            color: white;
-        }
-        .whatsapp-btn:hover { 
-            background: #128C7E;
-        }
         @media (max-width: 600px) {
             .container { width: 90%; }
             table { font-size: 14px; }
@@ -104,6 +97,10 @@
         <input type="text" id="produto" placeholder="Produto">
         <input type="number" id="valor" placeholder="Valor (R$)">
         <button onclick="salvarPedido()">Salvar Pedido</button>
+
+        <!-- Campo de pesquisa para filtrar pedidos -->
+        <input type="text" id="filtroNome" placeholder="Filtrar por Nome" onkeyup="filtrarPedidos()">
+        
         <h3>Pedidos Registrados</h3>
         <table>
             <thead>
@@ -157,7 +154,7 @@
                     <td>
                         <button onclick="editarPedido(${index})">Editar</button>
                         <button class="delete-btn" onclick="deletarPedido(${index})">Deletar</button>
-                        <button class="whatsapp-btn" onclick="compartilharPedidoWhatsApp(${index})">Compartilhar no WhatsApp</button>
+                        <button class="share-btn" onclick="compartilharPedido(${index})">Compartilhar</button>
                     </td>
                 </tr>`;
                 listaPedidos.innerHTML += row;
@@ -181,13 +178,48 @@
             deletarPedido(index);
         }
         
-        function compartilharPedidoWhatsApp(index) {
+        function compartilharPedido(index) {
             let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
             const pedido = pedidos[index];
-            const mensagem = `Pedido:\nNome: ${pedido.nome}\nProduto: ${pedido.produto}\nValor: R$ ${pedido.valor}\nData/Hora: ${pedido.dataHora}`;
+            const mensagem = `Pedido:
+Nome: ${pedido.nome}
+Produto: ${pedido.produto}
+Valor: R$ ${pedido.valor}
+Data/Hora: ${pedido.dataHora}`;
             
-            const urlWhatsApp = `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
-            window.open(urlWhatsApp, '_blank');
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Pedido Registrado',
+                    text: mensagem
+                }).catch(err => console.log("Erro ao compartilhar", err));
+            } else {
+                alert("Compartilhamento não suportado neste navegador.");
+            }
+        }
+
+        // Função para filtrar os pedidos pelo nome
+        function filtrarPedidos() {
+            const filtro = document.getElementById('filtroNome').value.toLowerCase();
+            const listaPedidos = document.getElementById('listaPedidos');
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            
+            listaPedidos.innerHTML = '';
+            pedidos.forEach((p, index) => {
+                if (p.nome.toLowerCase().includes(filtro)) {
+                    const row = `<tr>
+                        <td>${p.nome}</td>
+                        <td>${p.produto}</td>
+                        <td>R$ ${p.valor}</td>
+                        <td>${p.dataHora}</td>
+                        <td>
+                            <button onclick="editarPedido(${index})">Editar</button>
+                            <button class="delete-btn" onclick="deletarPedido(${index})">Deletar</button>
+                            <button class="share-btn" onclick="compartilharPedido(${index})">Compartilhar</button>
+                        </td>
+                    </tr>`;
+                    listaPedidos.innerHTML += row;
+                }
+            });
         }
         
         document.addEventListener('DOMContentLoaded', exibirPedidos);
