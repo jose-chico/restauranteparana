@@ -20,7 +20,7 @@
             border-radius: 10px; 
             box-shadow: 0px 0px 15px rgba(255, 165, 0, 0.5); 
         }
-        #logo{
+        #logo {
             width: 100%;
         }
         h2, h3 { 
@@ -35,7 +35,7 @@
             border: none; 
             border-radius: 5px; 
             font-size: 16px;
-            box-sizing: border-box; /* Isso vai garantir que o padding não cause "estouro" */
+            box-sizing: border-box; /* Garante que o padding não cause "estouro" */
         }
         input { 
             background: #222; 
@@ -111,16 +111,39 @@
         #deletarTodosBtn:hover {
             background: #ff4500;
         }
+
+        /* Estilo Responsivo */
         @media (max-width: 600px) {
-            .container { width: 90%; }
-            table { font-size: 12px; }
-            input, button { font-size: 14px; padding: 10px; box-sizing: border-box; }
+            .container { 
+                width: 90%; 
+                padding: 10px; 
+            }
+            table { 
+                font-size: 12px; 
+                width: 50%;
+            }
+            input, button { 
+                font-size: 14px; 
+                padding: 10px; 
+                box-sizing: border-box; 
+            }
+            th, td {
+                font-size: 12px; /* Menor fonte para celulares */
+                padding: 8px;  /* Ajusta o padding para otimizar espaço */
+            }
+            #totalValor {
+                font-size: 16px; /* Ajusta o tamanho da fonte para telas menores */
+            }
+            .delete-btn, .share-btn, #deletarTodosBtn {
+                font-size: 14px; 
+                padding: 12px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="restaurante.png" id="logo"/>
+        <img src="restaurante.png" id="logo" />
         <h2>Registro de Pedidos</h2>
         <input type="text" id="nome" placeholder="Nome do Cliente">
         <input type="text" id="produto" placeholder="Produto">
@@ -146,7 +169,7 @@
         <button class="share-btn" id="compartilharBtn" style="display: none;" onclick="compartilhar()">Compartilhar</button> <!-- Botão Compartilhar -->
         <button id="deletarTodosBtn" style="display: none;" onclick="deletarTodos()">Deletar Todos</button> <!-- Botão Deletar Todos -->
     </div>
-    
+
     <script>
         function salvarPedido() {
             const nome = document.getElementById('nome').value;
@@ -224,7 +247,6 @@
             const filtro = document.getElementById('filtroNome').value.toLowerCase();
             const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
 
-            // Se há filtro, compartilhe os pedidos filtrados, senão compartilhe todos.
             let pedidosParaCompartilhar = pedidos;
             if (filtro) {
                 pedidosParaCompartilhar = pedidos.filter(p => p.nome.toLowerCase().includes(filtro));
@@ -234,74 +256,49 @@
                 return `Cliente: ${p.nome}, Produto: ${p.produto}, Valor: R$ ${p.valor}, Data/Hora: ${p.dataHora}`;
             }).join('\n');
 
-            // Codifica o texto para a URL
             const mensagem = encodeURIComponent(textoCompartilhado);
-            
-            // Cria o link do WhatsApp para compartilhar
             const urlWhatsApp = `https://wa.me/?text=${mensagem}`;
-            
-            // Abre o link do WhatsApp
             window.open(urlWhatsApp, '_blank');
         }
 
         function editarPedido(index) {
             const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
             const pedido = pedidos[index];
-            
-            // Preenche os campos de input com os dados do pedido
             document.getElementById('nome').value = pedido.nome;
             document.getElementById('produto').value = pedido.produto;
             document.getElementById('valor').value = pedido.valor;
 
-            // Modifica o botão para "Salvar Alterações"
             document.querySelector("button[onclick='salvarPedido()']").innerText = 'Salvar Alterações';
-            document.querySelector("button[onclick='salvarPedido()']").onclick = function() {
+            document.querySelector("button[onclick='salvarPedido()']").onclick = function () {
                 atualizarPedido(index);
             };
         }
 
         function atualizarPedido(index) {
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
             const nome = document.getElementById('nome').value;
             const produto = document.getElementById('produto').value;
             const valor = document.getElementById('valor').value;
-            const dataHora = new Date().toLocaleString();
 
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            pedidos[index] = { nome, produto, valor, dataHora };
-
+            pedidos[index] = { nome, produto, valor, dataHora: new Date().toLocaleString() };
             localStorage.setItem('pedidos', JSON.stringify(pedidos));
-
-            document.getElementById('nome').value = '';
-            document.getElementById('produto').value = '';
-            document.getElementById('valor').value = '';
+            exibirPedidos();
             document.querySelector("button[onclick='salvarPedido()']").innerText = 'Salvar Pedido';
             document.querySelector("button[onclick='salvarPedido()']").onclick = salvarPedido;
-
-            exibirPedidos();
         }
 
         function deletarPedido(index) {
-            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
             pedidos.splice(index, 1);
             localStorage.setItem('pedidos', JSON.stringify(pedidos));
             exibirPedidos();
         }
 
         function deletarTodos() {
-            const filtro = document.getElementById('filtroNome').value.toLowerCase();
-            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            
-            if (filtro) {
-                pedidos = pedidos.filter(p => !p.nome.toLowerCase().includes(filtro));
-            } else {
-                pedidos = [];
-            }
-
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+            localStorage.removeItem('pedidos');
             exibirPedidos();
         }
 
-        // Exibe os pedidos ao carregar a página
         exibirPedidos();
     </script>
 </body>
