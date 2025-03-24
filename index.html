@@ -228,7 +228,51 @@
             window.open(urlWhatsApp, '_blank');
         }
 
-        document.addEventListener('DOMContentLoaded', exibirPedidos);
+        function editarPedido(index) {
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            const pedido = pedidos[index];
+            
+            // Preenche os campos de input com os dados do pedido
+            document.getElementById('nome').value = pedido.nome;
+            document.getElementById('produto').value = pedido.produto;
+            document.getElementById('valor').value = pedido.valor;
+
+            // Modifica o botão para "Salvar Alterações"
+            document.querySelector("button[onclick='salvarPedido()']").innerText = 'Salvar Alterações';
+            document.querySelector("button[onclick='salvarPedido()']").onclick = function() {
+                atualizarPedido(index);
+            };
+        }
+
+        function atualizarPedido(index) {
+            const nome = document.getElementById('nome').value;
+            const produto = document.getElementById('produto').value;
+            const valor = document.getElementById('valor').value;
+            const dataHora = new Date().toLocaleString();
+
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos[index] = { nome, produto, valor, dataHora };
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+
+            // Restaura o botão para "Salvar Pedido"
+            document.querySelector("button[onclick='salvarPedido()']").innerText = 'Salvar Pedido';
+            document.querySelector("button[onclick='salvarPedido()']").onclick = salvarPedido;
+
+            document.getElementById('nome').value = '';
+            document.getElementById('produto').value = '';
+            document.getElementById('valor').value = '';
+            
+            exibirPedidos();
+        }
+
+        function deletarPedido(index) {
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos.splice(index, 1);
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+            exibirPedidos();
+        }
+
+        exibirPedidos(); // Exibe pedidos ao carregar a página
     </script>
 </body>
 </html>
