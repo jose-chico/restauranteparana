@@ -251,27 +251,27 @@
             if (filtro) {
                 pedidosParaCompartilhar = pedidos.filter(p => p.nome.toLowerCase().includes(filtro));
             }
+            
+            alert("Pedidos para compartilhar:\n" + pedidosParaCompartilhar.map(p => `${p.nome} - ${p.produto} - R$ ${p.valor}`).join('\n'));
+        }
 
-            const textoCompartilhado = pedidosParaCompartilhar.map(p => {
-                return `Cliente: ${p.nome}, Produto: ${p.produto}, Valor: R$ ${p.valor}, Data/Hora: ${p.dataHora}`;
-            }).join('\n');
-
-            const mensagem = encodeURIComponent(textoCompartilhado);
-            const urlWhatsApp = `https://wa.me/?text=${mensagem}`;
-            window.open(urlWhatsApp, '_blank');
+        function deletarPedido(index) {
+            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+            pedidos.splice(index, 1);
+            localStorage.setItem('pedidos', JSON.stringify(pedidos));
+            exibirPedidos();
         }
 
         function editarPedido(index) {
             const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos[index];
-            document.getElementById('nome').value = pedido.nome;
-            document.getElementById('produto').value = pedido.produto;
-            document.getElementById('valor').value = pedido.valor;
+            const p = pedidos[index];
+            document.getElementById('nome').value = p.nome;
+            document.getElementById('produto').value = p.produto;
+            document.getElementById('valor').value = p.valor;
 
-            document.querySelector("button[onclick='salvarPedido()']").innerText = 'Salvar Alterações';
-            document.querySelector("button[onclick='salvarPedido()']").onclick = function () {
-                atualizarPedido(index);
-            };
+            const botao = document.querySelector("button[onclick='salvarPedido()']");
+            botao.innerText = 'Atualizar Pedido';
+            botao.onclick = () => atualizarPedido(index);
         }
 
         function atualizarPedido(index) {
@@ -283,15 +283,14 @@
             pedidos[index] = { nome, produto, valor, dataHora: new Date().toLocaleString() };
             localStorage.setItem('pedidos', JSON.stringify(pedidos));
             exibirPedidos();
+            
+            // Limpa os campos após salvar as alterações
+            document.getElementById('nome').value = '';
+            document.getElementById('produto').value = '';
+            document.getElementById('valor').value = '';
+
             document.querySelector("button[onclick='salvarPedido()']").innerText = 'Salvar Pedido';
             document.querySelector("button[onclick='salvarPedido()']").onclick = salvarPedido;
-        }
-
-        function deletarPedido(index) {
-            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            pedidos.splice(index, 1);
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
-            exibirPedidos();
         }
 
         function deletarTodos() {
@@ -299,6 +298,7 @@
             exibirPedidos();
         }
 
+        // Chama a função para exibir os pedidos logo que a página carrega
         exibirPedidos();
     </script>
 </body>
