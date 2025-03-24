@@ -15,10 +15,10 @@
         .container { 
             max-width: 500px; 
             margin: 40px auto; 
-            background: #333; 
+            background: #2b2b2b; 
             padding: 20px; 
             border-radius: 10px; 
-            box-shadow: 0px 0px 15px rgba(0, 255, 0, 0.5); 
+            box-shadow: 0px 0px 15px rgba(255, 165, 0, 0.5); 
         }
         h2, h3 { 
             text-align: center; 
@@ -28,20 +28,23 @@
             display: block; 
             margin: 10px 0; 
             width: 100%; 
-            padding: 10px; 
+            padding: 12px; 
             border: none; 
             border-radius: 5px; 
+            font-size: 16px;
+            box-sizing: border-box; /* Isso vai garantir que o padding não cause "estouro" */
         }
         input { 
             background: #222; 
             color: white; 
-            border: 1px solid #ffa500; 
+            border: 2px solid #ffa500; 
         }
         button { 
             background-color: #ffa500; 
             color: black; 
             font-weight: bold; 
             cursor: pointer; 
+            transition: 0.3s;
         }
         button:hover { 
             background-color: #ff8c00; 
@@ -57,8 +60,9 @@
         }
         th, td { 
             border: 1px solid #ffa500; 
-            padding: 8px; 
+            padding: 10px; 
             text-align: left; 
+            font-size: 14px;
         }
         th { 
             background: #ff8c00; 
@@ -68,6 +72,8 @@
             background: #00cc00; 
             color: white; 
             font-weight: bold; 
+            padding: 8px;
+            border-radius: 4px;
         }
         td button:hover { 
             background: #009900; 
@@ -80,13 +86,24 @@
         }
         .share-btn { 
             background: #1e90ff;
+            margin-top: 10px;
+            width: 100%;
         }
         .share-btn:hover { 
             background: #0066cc;
         }
+        #totalValor {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            color: #00ff00;
+            display: none;
+            font-weight: bold;
+        }
         @media (max-width: 600px) {
             .container { width: 90%; }
-            table { font-size: 14px; }
+            table { font-size: 12px; }
+            input, button { font-size: 14px; padding: 10px; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -98,22 +115,23 @@
         <input type="number" id="valor" placeholder="Valor (R$)">
         <button onclick="salvarPedido()">Salvar Pedido</button>
 
-        <!-- Campo de pesquisa para filtrar pedidos -->
         <input type="text" id="filtroNome" placeholder="Filtrar por Nome" onkeyup="filtrarPedidos()">
         
         <h3>Pedidos Registrados</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Nome</th>
+                    <th>Cliente</th> <!-- Alterado de Nome para Cliente -->
                     <th>Produto</th>
                     <th>Valor</th>
                     <th>Data/Hora</th>
-                    <th>Ações</th>
+                    <th id="acoesColuna">Ações</th>
                 </tr>
             </thead>
             <tbody id="listaPedidos"></tbody>
         </table>
+        <p id="totalValor">Total: R$ 0,00</p>
+        <button class="share-btn" id="compartilharBtn" style="display: none;" onclick="compartilhar()">Compartilhar</button> <!-- Botão Compartilhar -->
     </div>
     
     <script>
@@ -154,74 +172,62 @@
                     <td>
                         <button onclick="editarPedido(${index})">Editar</button>
                         <button class="delete-btn" onclick="deletarPedido(${index})">Deletar</button>
-                        <button class="share-btn" onclick="compartilharPedido(${index})">Compartilhar</button>
                     </td>
                 </tr>`;
                 listaPedidos.innerHTML += row;
             });
         }
         
-        function deletarPedido(index) {
-            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            pedidos.splice(index, 1);
-            localStorage.setItem('pedidos', JSON.stringify(pedidos));
-            exibirPedidos();
-        }
-        
-        function editarPedido(index) {
-            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos[index];
-            document.getElementById('nome').value = pedido.nome;
-            document.getElementById('produto').value = pedido.produto;
-            document.getElementById('valor').value = pedido.valor;
-            
-            deletarPedido(index);
-        }
-        
-        function compartilharPedido(index) {
-            let pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
-            const pedido = pedidos[index];
-            const mensagem = `Pedido:
-Nome: ${pedido.nome}
-Produto: ${pedido.produto}
-Valor: R$ ${pedido.valor}
-Data/Hora: ${pedido.dataHora}`;
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Pedido Registrado',
-                    text: mensagem
-                }).catch(err => console.log("Erro ao compartilhar", err));
-            } else {
-                alert("Compartilhamento não suportado neste navegador.");
-            }
-        }
-
-        // Função para filtrar os pedidos pelo nome
         function filtrarPedidos() {
             const filtro = document.getElementById('filtroNome').value.toLowerCase();
             const listaPedidos = document.getElementById('listaPedidos');
+            const totalValor = document.getElementById('totalValor');
             const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
             
+            let total = 0;
             listaPedidos.innerHTML = '';
-            pedidos.forEach((p, index) => {
+            pedidos.forEach((p) => {
                 if (p.nome.toLowerCase().includes(filtro)) {
-                    const row = `<tr>
+                    total += parseFloat(p.valor);
+                    listaPedidos.innerHTML += `<tr>
                         <td>${p.nome}</td>
                         <td>${p.produto}</td>
                         <td>R$ ${p.valor}</td>
                         <td>${p.dataHora}</td>
-                        <td>
-                            <button onclick="editarPedido(${index})">Editar</button>
-                            <button class="delete-btn" onclick="deletarPedido(${index})">Deletar</button>
-                            <button class="share-btn" onclick="compartilharPedido(${index})">Compartilhar</button>
-                        </td>
+                        ${filtro ? '' : '<td><button onclick="editarPedido()">Editar</button><button class="delete-btn" onclick="deletarPedido()">Deletar</button></td>'}
                     </tr>`;
-                    listaPedidos.innerHTML += row;
                 }
             });
+            totalValor.innerText = `Total: R$ ${total.toFixed(2)}`;
+            totalValor.style.display = filtro ? 'block' : 'none';
+            document.getElementById('acoesColuna').style.display = filtro ? 'none' : 'table-cell';
+            document.getElementById('compartilharBtn').style.display = filtro ? 'block' : 'none'; // Exibe o botão de compartilhar
         }
-        
+
+        function compartilhar() {
+            const filtro = document.getElementById('filtroNome').value.toLowerCase();
+            const pedidos = JSON.parse(localStorage.getItem('pedidos')) || [];
+
+            // Se há filtro, compartilhe os pedidos filtrados, senão compartilhe todos.
+            let pedidosParaCompartilhar = pedidos;
+            if (filtro) {
+                pedidosParaCompartilhar = pedidos.filter(p => p.nome.toLowerCase().includes(filtro));
+            }
+
+            const textoCompartilhado = pedidosParaCompartilhar.map(p => {
+                return `Cliente: ${p.nome}, Produto: ${p.produto}, Valor: R$ ${p.valor}, Data/Hora: ${p.dataHora}`;
+            }).join('\n');
+
+            // Codifica o texto para a URL
+            const mensagem = encodeURIComponent(textoCompartilhado);
+            
+            // Cria o link do WhatsApp para compartilhar
+            const urlWhatsApp = `https://wa.me/?text=${mensagem}`;
+            
+            // Abre o link do WhatsApp
+            window.open(urlWhatsApp, '_blank');
+        }
+
         document.addEventListener('DOMContentLoaded', exibirPedidos);
     </script>
 </body>
